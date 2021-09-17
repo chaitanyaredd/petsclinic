@@ -14,6 +14,12 @@ pipeline {
                 }
 
             }
+        stage('Sonar scan execution') {
+            steps {
+                withSonarQubeEnv {
+                    sh 'mvn sonar:sonar -Dsonar.projectName=petsclinic -Dsonar.projectKey=petsclinic -Dsonar.host.url=http://localhost:9000 -Dsonar.login=c085f2ece607c6f82d8dcd73dbc7e6d55a44599f'
+                }
+            }
         }
     }
 }
