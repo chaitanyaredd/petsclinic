@@ -1,4 +1,9 @@
 pipeline {
+    environment { 
+        registry = "docker.io/petsclinic/petdogs"
+        registryCredential = '8d35a8b3-7839-41f4-8cb3-a5c22a891002' 
+        dockerImage = ''
+    }
     agent any
     tools {
         maven 'mvn'
@@ -22,6 +27,8 @@ pipeline {
                 }
             }
         }
+        // create a webhook in sonarqube to publish the status of sonar project
+        // https://tomgregory.com/sonarqube-quality-gates-in-jenkins-build-pipeline/
         stage('Sonar scan result check') {
             steps {
                 timeout(time: 2, unit: 'MINUTES') {
@@ -32,6 +39,22 @@ pipeline {
                                 error "Pipeline aborted due to quality gate failure: ${qg.status}"
                             }
                         }
+                    }
+                }
+            }
+        }
+        stage('Building our image') {
+            steps { 
+                script { 
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+                }
+            }
+        }
+        stage('Deploy our image') {
+            steps {
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push()
                     }
                 }
             }
